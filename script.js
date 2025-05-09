@@ -1,5 +1,5 @@
 import { Hands } from '@mediapipe/hands';
-import { Camera } from '@mediapipe/camera_utils';
+import * as cameraUtils from '@mediapipe/camera_utils';
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
 import { ARKeyboard } from './keyboard.js';
 import { SynthEngine } from './audio.js';
@@ -128,8 +128,8 @@ function setupHandTracking() {
     
     hands.onResults(onResults);
     
-    // Set up camera
-    camera = new Camera(videoElement, {
+    // Set up camera - using the correct Camera constructor from cameraUtils
+    camera = new cameraUtils.Camera(videoElement, {
         onFrame: async () => {
             await hands.send({image: videoElement});
         },
@@ -198,4 +198,3 @@ const HAND_CONNECTIONS = [
     [13, 17], [17, 18], [18, 19], [19, 20], // Pinky
     [0, 17], [5, 9], [9, 13], [13, 17], // Palm
 ];
-
