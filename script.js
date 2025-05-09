@@ -1,7 +1,3 @@
-import * as Hands from '@mediapipe/hands';
-import * as cameraUtils from '@mediapipe/camera_utils';
-import * as drawingUtils from '@mediapipe/drawing_utils';
-
 import { ARKeyboard } from './keyboard.js';
 import { SynthEngine } from './audio.js';
 
@@ -46,8 +42,8 @@ function onResults(results) {
             lastHandData = landmarks;
             
             // Draw hand landmarks and connections
-            drawingUtils.drawConnectors(ctx, landmarks, Hands.HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
-            drawingUtils.drawLandmarks(ctx, landmarks, {color: '#FF0000', lineWidth: 1});
+            drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
+            drawLandmarks(ctx, landmarks, {color: '#FF0000', lineWidth: 1});
             
             // Check each finger for interaction with the keyboard
             fingerTips.forEach((tipIdx, fingerIndex) => {
@@ -113,8 +109,8 @@ function updateDebugInfo(landmarks) {
 }
 
 function setupHandTracking() {
-    // Set up MediaPipe Hands - using the corrected import
-    hands = new Hands.Hands({
+    // Set up MediaPipe Hands - now using the global namespace
+    hands = new window.Hands({
         locateFile: (file) => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
         }
@@ -129,8 +125,8 @@ function setupHandTracking() {
     
     hands.onResults(onResults);
     
-    // Set up camera using the correct Camera constructor
-    camera = new cameraUtils.Camera(videoElement, {
+    // Set up camera - using the Camera object from the global namespace
+    camera = new window.Camera(videoElement, {
         onFrame: async () => {
             await hands.send({image: videoElement});
         },
@@ -179,7 +175,14 @@ window.addEventListener('load', () => {
         })
         .then(stream => {
             videoElement.srcObject = stream;
-            setupHandTracking();
+            
+            // We need to wait for MediaPipe scripts to load
+            if (typeof window.Hands === 'undefined' || typeof window.Camera === 'undefined') {
+                statusElement.textContent = "Loading MediaPipe libraries...";
+                loadMediaPipeScripts();
+            } else {
+                setupHandTracking();
+            }
         })
         .catch(err => {
             console.error("Error accessing webcam:", err);
@@ -189,3 +192,52 @@ window.addEventListener('load', () => {
         statusElement.textContent = "Error: Your browser doesn't support webcam access";
     }
 });
+
+// Function to load MediaPipe scripts directly
+function loadMediaPipeScripts() {
+    // Define the scripts we need
+    const scripts = [
+        "https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js",
+        "https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js",
+        "https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+    ];
+    
+    let scriptsLoaded = 0;
+    
+    scripts.forEach(src => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => {
+            scriptsLoaded++;
+            if (scriptsLoaded === scripts.length) {
+                // All scripts loaded, now we can use MediaPipe
+                setupHandTracking();
+            }
+        };
+        document.head.appendChild(script);
+    });
+}
+
+// Make drawing functions and HAND_CONNECTIONS available globally
+function drawConnectors(ctx, landmarks, connections, options) {
+    if (window.drawConnectors) {
+        window.drawConnectors(ctx, landmarks, connections, options);
+    }
+}
+
+function drawLandmarks(ctx, landmarks, options) {
+    if (window.drawLandmarks) {
+        window.drawLandmarks(ctx, landmarks, options);
+    }
+}
+
+// Hand connections for drawing
+const HAND_CONNECTIONS = [
+    [0, 1], [1, 2], [2, 3], [3, 4], // Thumb
+    [0, 5], [5, 6], [6, 7], [7, 8], // Index
+    [5, 9], [9, 10], [10, 11], [11, 12], // Middle
+    [9, 13], [13, 14], [14, 15], [15, 16], // Ring
+    [13, 17], [17, 18], [18, 19], [19, 20], // Pinky
+    [0, 17], [5, 9], [9, 13], [13, 17], // Palm
+];

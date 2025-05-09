@@ -63,6 +63,11 @@
             margin-bottom: 20px;
         }
     </style>
+    
+    <!-- Load MediaPipe libraries directly -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="container">
@@ -80,16 +85,6 @@
         <div id="debug"></div>
     </div>
 
-    <!-- Import Maps for loading ES modules from CDN -->
-    <script type="importmap">
-        {
-            "imports": {
-                "@mediapipe/hands": "https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js",
-                "@mediapipe/camera_utils": "https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js",
-                "@mediapipe/drawing_utils": "https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
-            }
-        }
-    </script>
     <script src="keyboard.js" type="module"></script>
     <script src="audio.js" type="module"></script>
     <script src="script.js" type="module"></script>
