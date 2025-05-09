@@ -1,6 +1,7 @@
-import { Hands } from '@mediapipe/hands';
+import * as Hands from '@mediapipe/hands';
 import * as cameraUtils from '@mediapipe/camera_utils';
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
+import * as drawingUtils from '@mediapipe/drawing_utils';
+
 import { ARKeyboard } from './keyboard.js';
 import { SynthEngine } from './audio.js';
 
@@ -45,8 +46,8 @@ function onResults(results) {
             lastHandData = landmarks;
             
             // Draw hand landmarks and connections
-            drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
-            drawLandmarks(ctx, landmarks, {color: '#FF0000', lineWidth: 1});
+            drawingUtils.drawConnectors(ctx, landmarks, Hands.HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
+            drawingUtils.drawLandmarks(ctx, landmarks, {color: '#FF0000', lineWidth: 1});
             
             // Check each finger for interaction with the keyboard
             fingerTips.forEach((tipIdx, fingerIndex) => {
@@ -112,8 +113,8 @@ function updateDebugInfo(landmarks) {
 }
 
 function setupHandTracking() {
-    // Set up MediaPipe Hands
-    hands = new Hands({
+    // Set up MediaPipe Hands - using the corrected import
+    hands = new Hands.Hands({
         locateFile: (file) => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
         }
@@ -128,7 +129,7 @@ function setupHandTracking() {
     
     hands.onResults(onResults);
     
-    // Set up camera - using the correct Camera constructor from cameraUtils
+    // Set up camera using the correct Camera constructor
     camera = new cameraUtils.Camera(videoElement, {
         onFrame: async () => {
             await hands.send({image: videoElement});
@@ -188,13 +189,3 @@ window.addEventListener('load', () => {
         statusElement.textContent = "Error: Your browser doesn't support webcam access";
     }
 });
-
-// Make HAND_CONNECTIONS available for drawing
-const HAND_CONNECTIONS = [
-    [0, 1], [1, 2], [2, 3], [3, 4], // Thumb
-    [0, 5], [5, 6], [6, 7], [7, 8], // Index
-    [5, 9], [9, 10], [10, 11], [11, 12], // Middle
-    [9, 13], [13, 14], [14, 15], [15, 16], // Ring
-    [13, 17], [17, 18], [18, 19], [19, 20], // Pinky
-    [0, 17], [5, 9], [9, 13], [13, 17], // Palm
-];
